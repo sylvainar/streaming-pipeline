@@ -6,9 +6,28 @@ services:
                         context: ./rtmp
                 ports:
                         - 1935:1935
+
         hls:
                 image: jrottenberg/ffmpeg
                 volumes:
-                        - ./stream:/stream
-                command: "-i rtmp://rtmp:1935/live/1234 -hls_time 10 -hls_list_size 6 -hls_wrap 10 -start_number 1 /stream/stream.m3u8"
+                        - hls-stream:/stream
+                command: "-i rtmp://rtmp:1935/live/1234 -c:v libx264 -crf 21 -preset veryfast -max_muxing_queue_size 1024 -hls_time 10 -hls_list_size 6 -hls_wrap 10 -start_number 1 /stream/stream.m3u8"
+
+        diffusion:
+                build:
+                        context: ./diffusion
+                ports:
+                        - 9000:8080
+                volumes:
+                        - hls-stream:/mnt/hls
+
+        web :
+                build:
+                        context: ./web
+                ports:
+                        - 8080:80
+                         
+volumes:
+        hls-stream:
+
 
